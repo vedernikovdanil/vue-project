@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  client:
+    build: ./client
+    command: sh -c "npm run dev"
+    depends_on:
+      - server
+    networks:
+      - vue-app-network
+
+  server:
+    build: ./server
+    command: sh -c "sleep 10 && npm run dev"
+    environment:
+      - MSSQL_SERVER=mssql
+      - MSSQL_DATABASE=WebShopDB
+      - MSSQL_USER=sa
+      - MSSQL_PASSWORD=Password1!
+    depends_on:
+      - mssql
+    networks:
+      - vue-app-network
+
+  mssql:
+    build: ./mssql
+    ports:
+      - 1433:1433
+    # environment: IN_DOCKERFILE
+    networks:
+      - vue-app-network
+
+  nginx:
+    build: ./nginx
+    ports:
+      - 8001:80
+    # environment:
+    #   - NGINX_HOST=YOUR_SERVER_HOST
+    depends_on:
+      - client
+      - server
+    networks:
+      - vue-app-network
+
+networks:
+  vue-app-network:
+    driver: bridge
